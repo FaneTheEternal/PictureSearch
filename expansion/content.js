@@ -17,6 +17,8 @@ const doAPI = (event) => {
 
 document.addEventListener('picture_search', () => {
     if (IS_ACTIVE) {
+        let data = [];
+
         let count = 0;
         images = document.querySelectorAll('img');
         if (images) {
@@ -33,7 +35,8 @@ document.addEventListener('picture_search', () => {
 
                 // size.w > picSize || size.h > picSize
                 if (size.w > picSize || size.h > picSize) {
-                    theArray[index].title = `width: ${size.w} - height: ${size.h}`;
+                    el.title = `width: ${size.w} - height: ${size.h}`;
+                    data.push(el.src);
                     count++;
                 }
             });
@@ -45,7 +48,7 @@ document.addEventListener('picture_search', () => {
             aImage.forEach((value, index, theArray) => {
                 const el = theArray[index];
                 let bk = el.style.backgroundImage;
-                if (bk) {
+                if (bk.indexOf('url') != -1) {
                     bk = bk.slice(bk.indexOf('"') + 1, bk.lastIndexOf('"'));
                     let size = {w: 0, h: 0};
 
@@ -57,12 +60,14 @@ document.addEventListener('picture_search', () => {
 
                     // size.w > picSize || size.h > picSize
                     if (size.w > picSize || size.h > picSize) {
-                        theArray[index].title = `width: ${size.w} - height: ${size.h}`;
+                        el.title = `width: ${size.w} - height: ${size.h}`;
+                        data.push(bk);
                         count++;
                     }
                 }
             });
         }
         console.log(count);
+        console.log(data);
     }
 });
