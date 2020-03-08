@@ -23,6 +23,7 @@
     },
 
     "permissions": [
-        "activeTab"
+        "activeTab",
+        "http://localhost:8080/*"
     ]
 }
