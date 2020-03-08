@@ -11,6 +11,7 @@ chrome.runtime.sendMessage({req: 'IS_ACTIVE'}, (response) => {
 
 document.addEventListener('picture_search', () => {
     if (IS_ACTIVE) {
+        let count = 0;
         images = document.querySelectorAll('img');
         if (images) {
             images.forEach((value, index, theArray) => {
@@ -19,6 +20,7 @@ document.addEventListener('picture_search', () => {
                 // console.log(src);
             });
         }
+        count += images.length
     
         const body = document.getElementsByTagName('body')[0];
         aImage = body.querySelectorAll('*');
@@ -32,5 +34,7 @@ document.addEventListener('picture_search', () => {
                 }
             });
         }
+        count += aImage.length
+        console.log(count);
     }
 });
