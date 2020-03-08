@@ -22,10 +22,10 @@ document.addEventListener('picture_search', () => {
 
                 if (el.style.width) size.w = el.style.width.toString();
                 else size.w = el.parentNode.style.width.toString();
-                size.w = size.w ? size.w.slice(0, length - 2) : 0;
+                size.w = size.w ? size.w.slice(0, length - 3) : 0;
                 if (el.style.height) size.h = el.style.height.toString();
                 else size.k = el.parentNode.style.height.toString();
-                size.h = size.h ? size.h.slice(0, length - 2) : 0;
+                size.h = size.h ? size.h.slice(0, length - 3) : 0;
 
                 // size.w > picSize && size.h > picSize
                 if (size.w > picSize && size.h > picSize) {
