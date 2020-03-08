@@ -2,22 +2,21 @@ let IS_ACTIVE = false;
 const picSearch = new Event('picture_search');
 const doGoogleAPI = new Event('doGoogleAPI');
 const picSize = 80;
+let DATA = {};
+let counter = 0;
 
+let MUTEX = false;
 
-chrome.runtime.sendMessage({req: 'IS_ACTIVE'}, (response) => {
-    IS_ACTIVE = response.IS_ACTIVE;
-
-    document.dispatchEvent(picSearch);
-    void chrome.runtime.lastError;
-});
-
-const doAPI = (event) => {
-    
-};
 
 document.addEventListener('picture_search', () => {
-    if (IS_ACTIVE) {
-        let data = [];
+    chrome.runtime.sendMessage({req: 'IS_ACTIVE'}, (response) => {
+        IS_ACTIVE = response.IS_ACTIVE;
+
+        void chrome.runtime.lastError;
+    });
+
+    if (IS_ACTIVE && !MUTEX) {
+        let data = {};
 
         let count = 0;
         images = document.querySelectorAll('img');
@@ -27,16 +26,25 @@ document.addEventListener('picture_search', () => {
                 const src = el.src;
                 let size = {w: 0, h: 0};
 
-                if (el.style.width) size.w = el.style.width.toString().slice(0, length - 2);
-                else size.w = el.getBoundingClientRect().width;
+                { // Получаем размеры картинки
+                    const width = el.style.width.toString();
+                    if (width) size.w = width.slice(0, width.length - 2);
+                    else size.w = el.getBoundingClientRect().width;
 
-                if (el.style.height) size.h = el.style.height.toString().slice(0, length - 2);
-                else size.k = el.getBoundingClientRect().height;
+                    const height = el.style.height.toString();
+                    if (height) size.w = height.slice(0, height.length - 2);
+                    else size.w = el.getBoundingClientRect().height;
+                }
 
                 // size.w > picSize || size.h > picSize
                 if (size.w > picSize || size.h > picSize) {
-                    el.title = `width: ${size.w} - height: ${size.h}`;
-                    data.push(el.src);
+                    if (DATA[el.src]) {
+                        el.title = DATA[el.src];
+                        data[el.src] = DATA[el.src];
+                    } else {
+                        el.title = 'Load...' + counter;
+                        data[el.src] = null;
+                    }
                     count++;
                 }
             });
@@ -52,22 +60,42 @@ document.addEventListener('picture_search', () => {
                     bk = bk.slice(bk.indexOf('"') + 1, bk.lastIndexOf('"'));
                     let size = {w: 0, h: 0};
 
-                    if (el.style.width) size.w = el.style.width.toString().slice(0, length - 3);
-                    else size.w = el.getBoundingClientRect().width;
-                    
-                    if (el.style.height) size.h = el.style.height.toString().slice(0, length - 3);
-                    else size.h = el.getBoundingClientRect().height;
+                    { // Получаем размеры элемента с картинкой
+                        const width = el.style.width.toString();
+                        if (width) size.w = width.slice(0, width.length - 2);
+                        else size.w = el.getBoundingClientRect().width;
+
+                        const height = el.style.height.toString();
+                        if (height) size.w = height.slice(0, height.length - 2);
+                        else size.w = el.getBoundingClientRect().height;
+                    }
 
                     // size.w > picSize || size.h > picSize
                     if (size.w > picSize || size.h > picSize) {
-                        el.title = `width: ${size.w} - height: ${size.h}`;
-                        data.push(bk);
+                        if (DATA[bk]) {
+                            el.title = DATA[bk];
+                            data[bk] = DATA[bk];
+                        } else {
+                            el.title = 'Load...' + counter;
+                            data[bk] = null;
+                        }
                         count++;
                     }
                 }
             });
         }
         console.log(count);
-        console.log(data);
+        // console.log(data);
+        MUTEX = true;
+        chrome.runtime.sendMessage({req: 'GET_DATA', pictures: data}, (response) => {
+            DATA = response.DATA;
+            console.log(DATA);
+            MUTEX = false;
+            void chrome.runtime.lastError;
+        });
+        counter++;
     }
 });
+
+let timerId = setInterval(() => document.dispatchEvent(picSearch), 3000);
+setTimeout(() => { clearInterval(timerId); alert('stop'); }, 20000);
