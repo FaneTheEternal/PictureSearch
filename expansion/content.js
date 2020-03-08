@@ -19,6 +19,7 @@ document.addEventListener('picture_search', () => {
         let data = {};
 
         let count = 0;
+        let needUpd = false;
         images = document.querySelectorAll('img');
         if (images) {
             images.forEach((value, index, theArray) => {
@@ -43,7 +44,8 @@ document.addEventListener('picture_search', () => {
                         data[el.src] = DATA[el.src];
                     } else {
                         el.title = 'Load...' + counter;
-                        data[el.src] = null;
+                        data[el.src] = {};
+                        needUpd = true;
                     }
                     count++;
                 }
@@ -77,7 +79,8 @@ document.addEventListener('picture_search', () => {
                             data[bk] = DATA[bk];
                         } else {
                             el.title = 'Load...' + counter;
-                            data[bk] = null;
+                            data[bk] = {};
+                            needUpd = true;
                         }
                         count++;
                     }
@@ -85,17 +88,18 @@ document.addEventListener('picture_search', () => {
             });
         }
         console.log(count);
-        // console.log(data);
-        MUTEX = true;
-        chrome.runtime.sendMessage({req: 'GET_DATA', pictures: data}, (response) => {
-            DATA = response.DATA;
-            console.log(DATA);
-            MUTEX = false;
-            void chrome.runtime.lastError;
-        });
-        counter++;
+        if (needUpd) {
+            MUTEX = true;
+            chrome.runtime.sendMessage({req: 'GET_DATA', pictures: data}, (response) => {
+                DATA = response.DATA;
+                console.log(DATA);
+                MUTEX = false;
+                void chrome.runtime.lastError;
+            });
+            counter++;
+        }
     }
 });
 
-let timerId = setInterval(() => document.dispatchEvent(picSearch), 3000);
-setTimeout(() => { clearInterval(timerId); alert('stop'); }, 20000);
+let timerId = setInterval(() => document.dispatchEvent(picSearch), 10000);
+setTimeout(() => { clearInterval(timerId); console.log('stop updating'); }, 60000);
