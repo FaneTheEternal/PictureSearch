@@ -1,0 +1,1 @@
+set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\vovaa\source\PictureSearch\server\secret.json

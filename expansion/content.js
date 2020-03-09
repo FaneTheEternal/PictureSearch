@@ -1,11 +1,24 @@
 let IS_ACTIVE = false;
 const picSearch = new Event('picture_search');
-const doGoogleAPI = new Event('doGoogleAPI');
 const picSize = 80;
 let DATA = {};
 let counter = 0;
 
 let MUTEX = false;
+
+const clearUrl = (obj) => {
+    console.log(obj);
+    const url = obj.toString();
+    let i = 0;
+    if (url.indexOf('png') > -1) i = url.indexOf('png') + 3;
+    else {
+        if (url.indexOf('jpg') > -1) i = url.indexOf('jpg') + 3;
+        else {
+            if (url.indexOf('svg') > -1) i = url.indexOf('svg') + 3;
+        }
+    }
+    return url.slice(0, i);
+};
 
 
 document.addEventListener('picture_search', () => {
@@ -39,12 +52,13 @@ document.addEventListener('picture_search', () => {
 
                 // size.w > picSize || size.h > picSize
                 if (size.w > picSize || size.h > picSize) {
-                    if (DATA[el.src]) {
-                        el.title = DATA[el.src];
-                        data[el.src] = DATA[el.src];
+                    const url = clearUrl(el.src);
+                    if (DATA[url]) {
+                        el.title = DATA[url];
+                        data[url] = DATA[url];
                     } else {
                         el.title = 'Load...' + counter;
-                        data[el.src] = {};
+                        data[url] = {};
                         needUpd = true;
                     }
                     count++;
@@ -74,12 +88,13 @@ document.addEventListener('picture_search', () => {
 
                     // size.w > picSize || size.h > picSize
                     if (size.w > picSize || size.h > picSize) {
-                        if (DATA[bk]) {
-                            el.title = DATA[bk];
-                            data[bk] = DATA[bk];
+                        const url = clearUrl(bk);
+                        if (DATA[url]) {
+                            el.title = DATA[url];
+                            data[url] = DATA[url];
                         } else {
                             el.title = 'Load...' + counter;
-                            data[bk] = {};
+                            data[url] = {};
                             needUpd = true;
                         }
                         count++;
@@ -87,11 +102,12 @@ document.addEventListener('picture_search', () => {
                 }
             });
         }
-        console.log(count);
+        console.log(`Count: ${count}`);
         if (needUpd) {
             MUTEX = true;
             chrome.runtime.sendMessage({req: 'GET_DATA', pictures: data}, (response) => {
                 DATA = response.DATA;
+                console.log(`GOT:`);
                 console.log(DATA);
                 MUTEX = false;
                 void chrome.runtime.lastError;
@@ -101,5 +117,8 @@ document.addEventListener('picture_search', () => {
     }
 });
 
+document.addEventListener('unload', () => {
+    clearInterval(timerId);
+})
+
 let timerId = setInterval(() => document.dispatchEvent(picSearch), 10000);
-setTimeout(() => { clearInterval(timerId); console.log('stop updating'); }, 60000);

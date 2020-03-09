@@ -1,4 +1,4 @@
-let IS_ACTIVE = true;
+let IS_ACTIVE = false;
 
 let DATA = {};
 let counter = 0;
