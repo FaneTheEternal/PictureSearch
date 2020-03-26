@@ -40,7 +40,7 @@ const doAPI = async (url) => {
                         }
                     });
                     DATA[url] = buff;
-                    console.log(`[doAPI]${url} <> ${buff}`);
+                    // console.log(`[doAPI]${url} <> ${buff}`);
                     console.log(`[doAPI]<END>(*SUCCESS*): ${url}`);
                 } else {
                     console.log(`[doAPI]<END>(*FAIL*): ${url}`);
@@ -67,7 +67,7 @@ app.post('/', (req, res) => {
     let time = performance.now();
     console.log(req.method + ' : ' + req.rawHeaders[1]);
     let resp = {};
-    console.log(req.body);
+    // console.log(req.body);
     for (let el in req.body) {
         if (DATA[el]) {
             resp[el] = DATA[el];
