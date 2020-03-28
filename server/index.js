@@ -17,7 +17,7 @@ const vision = require('@google-cloud/vision');
 
 // Получение информации из Cloud Vision API
 const doAPI = async (url) => {
-    console.log(`${url} <> ${url.indexOf('http')}`);
+    // console.log(`${url} <> ${url.indexOf('http')}`);
     if (url.indexOf('http') == -1) return 'None';
     console.log(`[doAPI]<GET>: ${url}`);
     const fileName = `./CACHE/${counter++}.${url.slice(-3)}`;
