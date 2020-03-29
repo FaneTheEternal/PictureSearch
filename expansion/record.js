@@ -6,13 +6,9 @@ class Record {
         this.isDone = () => this.status == 3;
         this.setVal = (value) => {
             if (this.isDone()) return;
-            if (value.indexOf('$Load') > -1) {
+            if (value.indexOf('$Loading') > -1) {
                 this.status = 1;
-            } else {
-                if (value.indexOf('$Loading') > -1) {
-                    this.status = 2;
-                } else this.status = 3
-            }
+            } else this.status = 2;
             this.value = value;
         }
     }

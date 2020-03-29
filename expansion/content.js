@@ -4,10 +4,19 @@ const picSize = 80;
 let DATA = {};
 let counter = 0;
 
-let MUTEX = false;
+class mutex {
+    constructor() {
+        this.semafora = false;
+        this.join = () => {
+            while(this.semafora) {}
+            this.semafora = true;
+        };
+        this.dispatch = () => this.semafora = false;
+    }
+}
+const MUTEX = new mutex();
 
 const clearUrl = (obj) => {
-    console.log(obj);
     const url = obj.toString();
     let i = 0;
     if (url.indexOf('png') > -1) i = url.indexOf('png') + 3;
@@ -20,15 +29,24 @@ const clearUrl = (obj) => {
     return url.slice(0, i);
 };
 
+const doMaGiK = (el, url) => {
+    el.title = DATA[url];
+};
+
 
 document.addEventListener('picture_search', () => {
-    chrome.runtime.sendMessage({req: 'IS_ACTIVE'}, (response) => {
-        IS_ACTIVE = response.IS_ACTIVE;
+    try {
+        chrome.runtime.sendMessage({req: 'IS_ACTIVE'}, (response) => {
+            IS_ACTIVE = response.IS_ACTIVE;
+    
+            void chrome.runtime.lastError;
+        });
+    } catch (error) {
+        console.log(error);
+        // pass
+    }
 
-        void chrome.runtime.lastError;
-    });
-
-    if (IS_ACTIVE && !MUTEX) {
+    if (IS_ACTIVE && !MUTEX.semafora) {
         let data = {};
 
         let count = 0;
@@ -37,7 +55,6 @@ document.addEventListener('picture_search', () => {
         if (images) {
             images.forEach((value, index, theArray) => {
                 const el = theArray[index];
-                const src = el.src;
                 let size = {w: 0, h: 0};
 
                 { // Получаем размеры картинки
@@ -50,15 +67,13 @@ document.addEventListener('picture_search', () => {
                     else size.w = el.getBoundingClientRect().height;
                 }
 
-                // size.w > picSize || size.h > picSize
                 if (size.w > picSize || size.h > picSize) {
                     const url = clearUrl(el.src);
-                    if (DATA[url]) {
-                        el.title = DATA[url];
-                        data[url] = DATA[url];
+                    if (DATA[url] && DATA[url] != 'Loading...') {
+                        doMaGiK(el, url);
                     } else {
-                        el.title = 'Load...' + counter;
-                        data[url] = {};
+                        el.title = DATA[url] ? DATA[url] : 'Load'+ '.'.repeat(counter);
+                        data[url] = null;
                         needUpd = true;
                     }
                     count++;
@@ -86,15 +101,13 @@ document.addEventListener('picture_search', () => {
                         else size.w = el.getBoundingClientRect().height;
                     }
 
-                    // size.w > picSize || size.h > picSize
                     if (size.w > picSize || size.h > picSize) {
                         const url = clearUrl(bk);
-                        if (DATA[url]) {
-                            el.title = DATA[url];
-                            data[url] = DATA[url];
+                        if (DATA[url] && DATA[url] != 'Loading...') {
+                            doMaGiK(el, url);
                         } else {
-                            el.title = 'Load...' + counter;
-                            data[url] = {};
+                            el.title = DATA[url] ? DATA[url] : 'Load'+ '.'.repeat(counter);
+                            data[url] = null;
                             needUpd = true;
                         }
                         count++;
@@ -104,12 +117,11 @@ document.addEventListener('picture_search', () => {
         }
         console.log(`Count: ${count}`);
         if (needUpd) {
-            MUTEX = true;
+            MUTEX.join();
             chrome.runtime.sendMessage({req: 'GET_DATA', pictures: data}, (response) => {
                 DATA = response.DATA;
-                console.log(`GOT:`);
-                console.log(DATA);
-                MUTEX = false;
+                console.log(`GOT: `, DATA);
+                MUTEX.dispatch();
                 void chrome.runtime.lastError;
             });
             counter++;

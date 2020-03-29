@@ -1,9 +1,29 @@
+// Express
 const express = require('express')
 const app = express();
+// -End-
+
+// Base server
 const http = require('http');
 const https = require('https');
+// -End-
+
+// Utils
 const fs = require('fs');
 const { PerformanceObserver, performance } = require('perf_hooks');
+// -End-
+
+// Redis
+const redis = require("redis");
+const redisClient = redis.createClient();
+const { promisify } = require("util");
+
+redisClient.on("error", function(error) {
+  console.error(error);
+});
+const getAsync = promisify(redisClient.get).bind(redisClient);
+const setAsync = promisify(redisClient.set).bind(redisClient);
+// -End-
 
 let DATA = JSON.parse(fs.readFileSync('./data.json'));
 let counter = 0;
@@ -12,11 +32,14 @@ let MUTEX = false;
 
 
 // Imports the Google Cloud client library
-const vision = require('@google-cloud/vision');
+// const vision = require('@google-cloud/vision');
 
 
 // Получение информации из Cloud Vision API
 const doAPI = async (url) => {
+    await setAsync(url, url);
+    console.log('doAPI: ', url);
+    return;
     // console.log(`${url} <> ${url.indexOf('http')}`);
     if (url.indexOf('http') == -1) return 'None';
     console.log(`[doAPI]<GET>: ${url}`);
@@ -48,9 +71,7 @@ const doAPI = async (url) => {
                 fs.unlinkSync(fileName);
             });
         });
-    });
-  
-    
+    });  
 }
 
 //Parse URL-encoded bodies (as sent by HTML forms)
@@ -60,24 +81,24 @@ app.use(express.urlencoded());
 app.use(express.json());
 
 // Access the parse results as request.body
-app.post('/', (req, res) => {
-    // let time = performance.now();
+app.post('/', async (req, res) => {
     while(MUTEX) {}
     MUTEX = true;
     let time = performance.now();
     console.log(req.method + ' : ' + req.rawHeaders[1]);
     let resp = {};
-    // console.log(req.body);
-    for (let el in req.body) {
-        if (DATA[el]) {
-            resp[el] = DATA[el];
+    const body = req.body
+    for (let i in body) {
+        const el = body[i];
+        const value = await getAsync(el)
+        if (value) {
+            resp[el] = value
         } else {
-            DATA[el] = 'Loading...';
+            resp[el] = 'Loading...';
             doAPI(el);
         }
     }
     MUTEX = false;
-    fs.writeFile('./data.json', JSON.stringify(DATA), err => console.log(`Errors: ${err}`));
     res.send(resp);
     time = performance.now() - time;
     console.log('Время выполнения = ', time);
