@@ -15,6 +15,26 @@ class mutex {
     }
 }
 const MUTEX = new mutex();
+let modalDone = [];
+
+const seeModal = (e) => {
+    e = e || window.event;
+    const pageX = e.target.getBoundingClientRect().x
+    const pageY = e.target.getBoundingClientRect().y
+
+    const modal = document.getElementById(e.currentTarget.title);
+    if (modal) {
+        modal.style.left = pageX + 'px';
+        modal.style.top = pageY + 'px';
+    }
+};
+
+const hideModal = (e) => {
+    const modal = document.getElementById(e.currentTarget.title);
+    if (modal) {
+        modal.style.top = -100 + 'px';
+    }
+};
 
 const clearUrl = (obj) => {
     const url = obj.toString();
@@ -30,7 +50,40 @@ const clearUrl = (obj) => {
 };
 
 const doMaGiK = (el, url) => {
+    if (modalDone.indexOf(url) != -1) return;
     el.title = DATA[url];
+
+    let modal = document.createElement('div');
+    modal.className = 'pic-modal';
+    modal.id = url;
+    let modalRef = document.createElement('a');
+    modalRef.className = 'pic-ref';
+    modal.style.cssText = `
+        position: fixed;
+        backgroundColor: red;
+        zIndex: 1337;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        transition: 0.3s;
+        border-radius: 5px;
+        height: 50px;
+    `
+    modal.style.position = 'absolute';
+    modal.style.backgroundColor = 'red';
+    modal.style.zIndex = '1337';
+    modalRef.href = url;
+    modalRef.target = '_blank';
+    modalRef.text = DATA[url];
+
+    modal.append(modalRef);
+    if (el.tagName.toLowerCase() == 'a') {
+        el.parentNode.append(modal);
+    } else {
+        el.append(modal);
+    }
+
+    el.addEventListener('mouseenter', seeModal);
+    el.addEventListener('mouseleave', hideModal);
+    modalDone.push(url);
 };
 
 
@@ -69,14 +122,16 @@ document.addEventListener('picture_search', () => {
 
                 if (size.w > picSize || size.h > picSize) {
                     const url = clearUrl(el.src);
-                    if (DATA[url] && DATA[url] != 'Loading...') {
-                        doMaGiK(el, url);
-                    } else {
-                        el.title = DATA[url] ? DATA[url] : 'Load'+ '.'.repeat(counter);
-                        data[url] = null;
-                        needUpd = true;
+                    if (modalDone.indexOf(url) == -1) {
+                        if (DATA[url] && DATA[url] != 'Loading...') {
+                            doMaGiK(el, url);
+                        } else {
+                            el.title = DATA[url] ? DATA[url] : 'Load'+ '.'.repeat(counter);
+                            data[url] = null;
+                            needUpd = true;
+                        }
+                        count++;
                     }
-                    count++;
                 }
             });
         }
@@ -103,14 +158,16 @@ document.addEventListener('picture_search', () => {
 
                     if (size.w > picSize || size.h > picSize) {
                         const url = clearUrl(bk);
-                        if (DATA[url] && DATA[url] != 'Loading...') {
-                            doMaGiK(el, url);
-                        } else {
-                            el.title = DATA[url] ? DATA[url] : 'Load'+ '.'.repeat(counter);
-                            data[url] = null;
-                            needUpd = true;
+                        if (modalDone.indexOf(url) == -1) {
+                            if (DATA[url] && DATA[url] != 'Loading...') {
+                                doMaGiK(el, url);
+                            } else {
+                                el.title = DATA[url] ? DATA[url] : 'Load'+ '.'.repeat(counter);
+                                data[url] = null;
+                                needUpd = true;
+                            }
+                            count++;
                         }
-                        count++;
                     }
                 }
             });
