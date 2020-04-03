@@ -32,15 +32,11 @@ let MUTEX = false;
 
 
 // Imports the Google Cloud client library
-// const vision = require('@google-cloud/vision');
+const vision = require('@google-cloud/vision');
 
 
 // Получение информации из Cloud Vision API
 const doAPI = async (url) => {
-    await setAsync(url, url);
-    console.log('doAPI: ', url);
-    return;
-    // console.log(`${url} <> ${url.indexOf('http')}`);
     if (url.indexOf('http') == -1) return 'None';
     console.log(`[doAPI]<GET>: ${url}`);
     const fileName = `./CACHE/${counter++}.${url.slice(-3)}`;
@@ -62,8 +58,7 @@ const doAPI = async (url) => {
                             buff += `${webEntity.description} `;
                         }
                     });
-                    DATA[url] = buff;
-                    // console.log(`[doAPI]${url} <> ${buff}`);
+                    setAsync(url, buff);
                     console.log(`[doAPI]<END>(*SUCCESS*): ${url}`);
                 } else {
                     console.log(`[doAPI]<END>(*FAIL*): ${url}`);
