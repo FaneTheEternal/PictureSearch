@@ -51,38 +51,40 @@ const clearUrl = (obj) => {
 
 const doMaGiK = (el, url) => {
     if (modalDone.indexOf(url) != -1) return;
-    el.title = DATA[url];
+    const data = DATA[url];
+    el.title = data;
 
     let modal = document.createElement('div');
-    modal.className = 'pic-modal';
     modal.id = url;
-    let modalRef = document.createElement('a');
-    modalRef.className = 'pic-ref';
     modal.style.cssText = `
-        position: fixed;
-        backgroundColor: red;
-        zIndex: 1337;
+        position: absolute;
+        background-color: lightgray;
+        z-index: 1337;
         box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-        transition: 0.3s;
         border-radius: 5px;
-        height: 50px;
     `
-    modal.style.position = 'absolute';
-    modal.style.backgroundColor = 'red';
-    modal.style.zIndex = '1337';
-    modalRef.href = url;
-    modalRef.target = '_blank';
-    modalRef.text = DATA[url];
+    const rowCss = `
+        height: auto;
+        background-color: white;
+        border-radius: 5px;
+        margin: 5px;
+        padding: 2px;
+        outline: none;
+    `
+    let dats = data.split(';');
+    for (i in dats) {
+        let row = document.createElement('p');
+        row.style.cssText = rowCss;
+        row.innerHTML = dats[i];
+        modal.append(row);
+    }
 
-    modal.append(modalRef);
-    if (el.tagName.toLowerCase() == 'a') {
+    if (el.tagName.toLowerCase() == 'img') {
         el.parentNode.append(modal);
     } else {
         el.append(modal);
     }
 
-    el.addEventListener('mouseenter', seeModal);
-    el.addEventListener('mouseleave', hideModal);
     modalDone.push(url);
 };
 
@@ -190,4 +192,8 @@ document.addEventListener('unload', () => {
     clearInterval(timerId);
 })
 
+let start = setInterval(() => {
+    document.dispatchEvent(picSearch);
+    clearInterval(start);
+}, 1000);
 let timerId = setInterval(() => document.dispatchEvent(picSearch), 10000);

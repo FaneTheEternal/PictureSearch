@@ -53,12 +53,17 @@ const doAPI = async (url) => {
                 if (webDetection.webEntities.length) {
                     let i = 0;
                     let buff = '';
-                    webDetection.webEntities.forEach(webEntity => {
+                    if (webDetection) {
+                        webDetection.webEntities.forEach(webEntity => {
                         if (i++ < 3) {
-                            buff += `${webEntity.description} `;
+                            const got = webEntity.description;
+                            if (got) {
+                                buff += `;${got}`;
+                            }
                         }
                     });
-                    setAsync(url, buff);
+                    }
+                    setAsync(url, buff.slice(1));
                     console.log(`[doAPI]<END>(*SUCCESS*): ${url}`);
                 } else {
                     console.log(`[doAPI]<END>(*FAIL*): ${url}`);
